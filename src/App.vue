@@ -1,13 +1,14 @@
 <template>
   <div id="app">
     <div class="container">
-      <Score :score="cakes.length" />
       <Cupcake
         @cupclick="clickHandler(cake, $event)"
         v-for="(cake, i) in cakes"
         :key="i"
         v-bind="cake"
       />
+      <Score v-if="!finished" :score="cakes.length" :initialFirstRow="amountCupcakesLayers" @cupchange="cupAmountChanged($event)" />
+      <Finish v-if="finished" :cupcakesAte="maxCupcakes" />
       <transition-group name="fade">
         <NomNom v-for="(nom) in nomnoms" :key="nom.x" v-bind="nom" />
       </transition-group>
@@ -19,6 +20,7 @@
 import Cupcake from "./components/Cupcake.vue";
 import NomNom from "./components/NomNom.vue";
 import Score from "./components/Score.vue";
+import Finish from "./components/Finish.vue";
 
 export default {
   name: "App",
@@ -26,9 +28,15 @@ export default {
     Cupcake,
     NomNom,
     Score,
+    Finish
   },
   methods: {
+    cupAmountChanged(event) {
+      this.amountCupcakesLayers = parseInt(event.target.value);
+      this.redo();
+    },
     clickHandler(cake, event) {
+      this.ateAtLeastOne = true;
       let cakeCopy = [...this.cakes];
       let index = this.cakes.indexOf(cake);
       cakeCopy.splice(index, 1);
@@ -37,43 +45,43 @@ export default {
       audio.play();
       this.nomnoms.push({
         x: `${event.clientX}px`,
-        y: `${event.clientY}px`,
+        y: `${event.clientY}px`
       });
       setTimeout(() => {
         this.nomnoms.splice(0, 1);
       }, 2000);
     },
+    calc() {
+      this.ateAtLeastOne = false;
+      let windowWidth = window.innerWidth;
+
+      //Math.floor(Math.min(10, windowWidth / 60));
+      let startX = (windowWidth - this.amountCupcakesLayers * 60) / 2;
+      this.maxCupcakes =
+        (this.amountCupcakesLayers * (this.amountCupcakesLayers + 1)) / 2;
+
+      let cakeAmount = 0;
+      for (let row = 0; row < this.amountCupcakesLayers; row++) {
+        let y = 5 + row * 10;
+        for (let cake = 0; cake < this.amountCupcakesLayers - row; cake++) {
+          let x = startX + row * 30 + cake * 60;
+          cakeAmount++;
+          setTimeout(() => {
+            this.cakes.push({ x: `${x}px`, y: `${y}%` });
+            let audio = new Audio("blop.mp3");
+            audio.play();
+          }, cakeAmount * 100);
+          // Math.max(1500 - cakeAmount * 40, 100)
+        }
+      }
+    },
+    redo() {
+      this.cakes = [];
+      this.calc();
+    }
   },
   created() {
-    // let cupcakeWidth = 60;
-    let windowWidth = window.innerWidth;
-
-    let amountCupcakesLayers = Math.floor(Math.min(10, windowWidth / 60));
-    // let faktor = 5; // TODO based on max amountCupcakeLayers
-    // for (let layer = 0; layer < amountCupcakesLayers; layer++) {
-    //   console.log("layer", layer);
-    //   let x = layer * 10;
-    //   let amountCupcakesOnCurrentFloor = amountCupcakesLayers - layer;
-    //   for (let cup = 0; cup < amountCupcakesOnCurrentFloor; cup++) {
-    //     let y = 5 + faktor * cup;
-    //     console.log(cup);
-    //     this.cakes.push({ x: `${x}%`, y: `${y}%` });
-    //   }
-    // }
-    let cakeAmount = 0;
-    for (let row = 0; row < amountCupcakesLayers; row++) {
-      let y = row * 10;
-      for (let cake = 0; cake < amountCupcakesLayers - row; cake++) {
-        let x = windowWidth / 3 + row * 30 + cake * 60;
-        cakeAmount++;
-        setTimeout(() => {
-          this.cakes.push({ x: `${x}px`, y: `${y}%` });
-          let audio = new Audio("blop.mp3");
-          audio.play();
-        }, cakeAmount * 100);
-        // Math.max(1500 - cakeAmount * 40, 100)
-      }
-    }
+    this.calc();
   },
   data: () => {
     return {
@@ -81,8 +89,16 @@ export default {
       nomnoms: [],
       score: 0,
       maxScore: 0,
+      ateAtLeastOne: false,
+      maxCupcakes: null,
+      amountCupcakesLayers: 6
     };
   },
+  computed: {
+    finished() {
+      return this.ateAtLeastOne && this.cakes.length === 0;
+    }
+  }
 };
 </script>
 
@@ -96,6 +112,6 @@ export default {
 }
 
 body {
-  background-color: black;
+  background-color: #1b2f52;
 }
 </style>

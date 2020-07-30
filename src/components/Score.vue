@@ -2,9 +2,8 @@
   <div class="container">
     <div>Cupcakes: {{score}}</div>
     <div>Click to eat</div>
-    <div v-if="score === 0">
-      Congratulations, you just ate a ton of Cupcakes.
-      <button @click="eatagain">Eat again?</button>
+    <div>Or add more!
+      <input :value="initialFirstRow" @change="$emit('cupchange', $event)" />
     </div>
   </div>
 </template>
@@ -13,28 +12,25 @@
 export default {
   props: {
     score: Number,
+    initialFirstRow: Number
   },
   created() {
     this.maxScore = this.score;
   },
   data: () => {
     return {
-      maxScore: 0,
+      maxScore: 0
     };
-  },
-  methods: {
-    eatagain() {
-      location.reload();
-    },
-  },
+  }
 };
 </script>
 
 <style scoped>
 div.container {
   position: absolute;
-  left: 75%;
-  bottom: 85%;
+  left: 70%;
+  bottom: 80%;
   color: white;
+  font-size: 24pt;
 }
 </style>
