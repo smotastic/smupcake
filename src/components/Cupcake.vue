@@ -1,5 +1,5 @@
 <template>
-  <div class="cupcake" :style="{left: this.x, bottom: this.y}">
+  <div @click="clickHandler($event)" class="cupcake" :style="{left: this.x, bottom: this.y}">
     <div class="frosting">
       <span class="cherry"></span>
       <span class="top"></span>
@@ -20,13 +20,19 @@
 export default {
   props: {
     x: String,
-    y: String
-  }
+    y: String,
+  },
+  methods: {
+    clickHandler(event) {
+      this.$emit("cupclick", event);
+    },
+  },
 };
 </script>
 
 <style scoped>
 .cupcake {
+  cursor: pointer;
   width: 60px;
   position: absolute;
   font-size: 0;
